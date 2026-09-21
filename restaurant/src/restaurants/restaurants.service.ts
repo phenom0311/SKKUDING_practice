@@ -31,4 +31,37 @@ export class RestaurantsService {
 
         return newRestaurant;
     }
+
+    updateRestaurant(
+        id: number,
+        name?: string,
+        address?: string,
+        phone?: string, 
+    ): Restaurant | undefined {
+        const restaurant = this.restaurants.find(
+            (restaurant) => restaurant.id === id,
+        );
+
+        if (!restaurant) {
+            return undefined;
+        }
+
+        if (name !== undefined) restaurant.name = name;
+        if (address !== undefined) restaurant.address = address;
+        if (phone !== undefined) restaurant.phone = phone;
+
+        return restaurant;
+    }
+
+    deleteRestaurant(id: number): Restaurant | undefined {
+        const idx = this.restaurants.findIndex(
+            (restaurant) => restaurant.id === id,
+        );
+
+        if(idx === -1) { return undefined };
+        // splice는 삭제된 restaurant 하나를 꺼내는 것.
+        const [deletedRestaurant] = this.restaurants.splice(idx, 1);
+        
+        return deletedRestaurant;
+    }
 }
