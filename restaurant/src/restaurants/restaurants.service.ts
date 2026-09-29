@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException  } from '@nestjs/common';
 import { Restaurant } from './restaurant.interface';
 
 @Injectable()
@@ -12,17 +12,27 @@ export class RestaurantsService {
         },
     ];
 
+    private nextId = 2;
+
     findAll(): Restaurant[] {
         return this.restaurants;
     }
     
-    findOne(id: number): Restaurant | undefined {
-        return this.restaurants.find((restaurant) => restaurant.id === id);
+    findOne(id: number): Restaurant {
+        const restaurant = this.restaurants.find(
+            (restaurant) => restaurant.id === id,
+        );
+
+        if (!restaurant) {
+            throw new NotFoundException('Restaurant not found');
+        }
+
+        return restaurant;
     }
 
-    createRestaurant(name: string, address: string, phone: string): Restaurant {
+    create(name: string, address: string, phone: string): Restaurant {
         const newRestaurant: Restaurant = {
-            id: this.restaurants.length + 1, // 임의로 부여
+            id: this.nextId++, // 임의로 부여
             name,
             address,
             phone,
@@ -32,19 +42,13 @@ export class RestaurantsService {
         return newRestaurant;
     }
 
-    updateRestaurant(
+    update(
         id: number,
         name?: string,
         address?: string,
-        phone?: string, 
-    ): Restaurant | undefined {
-        const restaurant = this.restaurants.find(
-            (restaurant) => restaurant.id === id,
-        );
-
-        if (!restaurant) {
-            return undefined;
-        }
+        phone?: string,
+    ): Restaurant {
+        const restaurant = this.findOne(id);
 
         if (name !== undefined) restaurant.name = name;
         if (address !== undefined) restaurant.address = address;
@@ -53,12 +57,13 @@ export class RestaurantsService {
         return restaurant;
     }
 
-    deleteRestaurant(id: number): Restaurant | undefined {
+    delete(id: number): Restaurant {
+        this.findOne(id);
+
         const idx = this.restaurants.findIndex(
             (restaurant) => restaurant.id === id,
         );
 
-        if(idx === -1) { return undefined };
         // splice는 삭제된 restaurant 하나를 꺼내는 것.
         const [deletedRestaurant] = this.restaurants.splice(idx, 1);
         

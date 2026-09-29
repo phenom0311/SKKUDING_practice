@@ -1,5 +1,10 @@
 import { Controller, Get, Param, Post, Body, Patch, Delete } from '@nestjs/common';
+import { ParseIntPipe } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { RestaurantsService } from './restaurants.service';
+import { CreateRestaurantDto } from './dto/create-restaurant.dto';
+import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { ApiKeyGuard } from './guards/api-key.guard';
 
 @Controller('restaurants')
 export class RestaurantsController {
@@ -14,37 +19,39 @@ export class RestaurantsController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string){
+    findOne(@Param('id', ParseIntPipe) id: string){
         return this.restaurantsService.findOne(Number(id));
     }
 
     @Post()
-    createRestaurant(
-        @Body('name') name: string,
-        @Body('address') address: string,
-        @Body('phone') phone: string,
-    ) { 
-        return this.restaurantsService.createRestaurant(name, address, phone)
-    };
+    @UseGuards(ApiKeyGuard)
+    create(@Body() body: CreateRestaurantDto) {
+        return this.restaurantsService.create(
+            body.name,
+            body.address,
+            body.phone,
+        );
+    }
     
     
     @Patch(':id')
-    updateRestaurant(
-        @Param('id') id: string,
-        @Body() body: {
-            name?: string;
-            address?: string;
-            phone?: string;
-        },
+    @UseGuards(ApiKeyGuard)
+    update(
+        @Param('id', ParseIntPipe) id: string,
+        @Body() body: UpdateRestaurantDto,
     ) {
-        return this.restaurantsService.updateRestaurant(
-            Number(id), body.name, body.address, body.phone,
+        return this.restaurantsService.update(
+            Number(id),
+            body.name,
+            body.address,
+            body.phone,
         );
     }
 
 
     @Delete(':id')
-    delete(@Param('id') id: string) {
-        return this.restaurantsService.deleteRestaurant(Number(id));
+    @UseGuards(ApiKeyGuard)
+    delete(@Param('id', ParseIntPipe) id: string) {
+        return this.restaurantsService.delete(Number(id));
     }
 }
